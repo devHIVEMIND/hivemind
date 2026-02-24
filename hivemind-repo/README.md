@@ -14,7 +14,7 @@
 </p>
 
 <p align="center">
-  <a href="https://www.npmjs.com/package/hivemind-sol"><img src="https://img.shields.io/npm/v/hivemind-sol?color=F59E0B&labelColor=0A0A0F&style=flat-square" alt="npm" /></a>
+  <a href="https://www.npmjs.com/package/hivemind-sol"><img src="https://img.shields.io/badge/npm-hivemind--sol-F59E0B?&labelColor=0A0A0F&style=flat-square" alt="npm" /></a>
   <a href="https://github.com/hivemind-sol/hivemind/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-F59E0B?labelColor=0A0A0F&style=flat-square" alt="MIT" /></a>
   <a href="https://solana.com"><img src="https://img.shields.io/badge/chain-Solana-F59E0B?labelColor=0A0A0F&style=flat-square" alt="Solana" /></a>
   <a href="https://discord.gg/hivemind"><img src="https://img.shields.io/badge/discord-join-F59E0B?labelColor=0A0A0F&style=flat-square" alt="Discord" /></a>
