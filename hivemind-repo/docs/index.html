@@ -1,0 +1,1690 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HIVEMIND — Collective AI Memory on Solana</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --amber: #F59E0B;
+  --amber-dim: #D97706;
+  --amber-glow: #FBBF24;
+  --amber-dark: #92400E;
+  --honey: #FCD34D;
+  --void: #030304;
+  --void-up: #0A0A0F;
+  --void-card: #0D0D14;
+  --void-border: #1A1A25;
+  --void-hover: #15151F;
+  --text-primary: #E8E8ED;
+  --text-secondary: #7A7A8A;
+  --text-muted: #4A4A58;
+  --red: #EF4444;
+  --green: #22C55E;
+  --cyan: #06B6D4;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'Outfit', sans-serif;
+  background: var(--void);
+  color: var(--text-primary);
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--void); }
+::-webkit-scrollbar-thumb { background: var(--void-border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--amber-dark); }
+
+/* ═══════════ GRAIN OVERLAY ═══════════ */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+  opacity: 0.03;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+}
+
+/* ═══════════ NAV ═══════════ */
+nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  padding: 20px 40px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(3,3,4,0.8);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.3s;
+}
+nav.scrolled { border-bottom-color: var(--void-border); }
+
+.nav-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  color: var(--text-primary);
+}
+.nav-logo svg { width: 28px; height: 28px; }
+.nav-logo span {
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: 3px;
+}
+
+.nav-links { display: flex; gap: 32px; align-items: center; }
+.nav-links a {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+.nav-links a:hover { color: var(--amber); }
+.nav-links a.active { color: var(--amber); }
+
+/* ═══════════ HERO ═══════════ */
+.hero {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 120px 40px 80px;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-canvas {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+.hero-gradient {
+  position: absolute;
+  width: 600px;
+  height: 600px;
+  border-radius: 50%;
+  filter: blur(150px);
+  opacity: 0.15;
+  pointer-events: none;
+}
+.hero-gradient-1 {
+  top: 10%;
+  left: 20%;
+  background: var(--amber);
+  animation: pulse-slow 8s ease-in-out infinite;
+}
+.hero-gradient-2 {
+  bottom: 10%;
+  right: 15%;
+  background: var(--amber-dark);
+  animation: pulse-slow 8s ease-in-out infinite 4s;
+}
+
+@keyframes pulse-slow {
+  0%, 100% { opacity: 0.1; transform: scale(1); }
+  50% { opacity: 0.2; transform: scale(1.1); }
+}
+
+.hero-content {
+  position: relative;
+  z-index: 1;
+  max-width: 900px;
+}
+
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border: 1px solid var(--void-border);
+  border-radius: 100px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--amber);
+  margin-bottom: 32px;
+  animation: fadeUp 0.8s ease-out;
+}
+.hero-badge .dot {
+  width: 6px; height: 6px;
+  background: var(--amber);
+  border-radius: 50%;
+  animation: blink 2s infinite;
+}
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+.hero h1 {
+  font-size: clamp(48px, 8vw, 96px);
+  font-weight: 900;
+  line-height: 0.95;
+  letter-spacing: -2px;
+  margin-bottom: 24px;
+  animation: fadeUp 0.8s ease-out 0.1s both;
+}
+.hero h1 em {
+  font-style: normal;
+  background: linear-gradient(135deg, var(--amber), var(--honey));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.hero-sub {
+  font-size: 18px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  max-width: 600px;
+  margin: 0 auto 40px;
+  animation: fadeUp 0.8s ease-out 0.2s both;
+}
+
+.hero-ca {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--text-muted);
+  letter-spacing: 1px;
+  margin-bottom: 32px;
+  animation: fadeUp 0.8s ease-out 0.25s both;
+  cursor: pointer;
+  transition: color 0.2s;
+  word-break: break-all;
+  padding: 0 20px;
+}
+.hero-ca:hover { color: var(--amber); }
+.hero-ca span { color: var(--text-secondary); }
+
+.hero-actions {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  flex-wrap: wrap;
+  animation: fadeUp 0.8s ease-out 0.3s both;
+}
+
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 28px;
+  background: var(--amber);
+  color: var(--void);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  text-decoration: none;
+  border: none;
+  border-radius: 2px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-primary:hover {
+  background: var(--amber-glow);
+  box-shadow: 0 0 30px rgba(245, 158, 11, 0.3);
+  transform: translateY(-1px);
+}
+
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 28px;
+  background: transparent;
+  color: var(--text-primary);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  text-decoration: none;
+  border: 1px solid var(--void-border);
+  border-radius: 2px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-secondary:hover {
+  border-color: var(--amber);
+  color: var(--amber);
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ═══════════ SECTIONS ═══════════ */
+section {
+  padding: 120px 40px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.section-tag {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--amber);
+  margin-bottom: 16px;
+}
+
+.section-title {
+  font-size: clamp(32px, 5vw, 52px);
+  font-weight: 800;
+  letter-spacing: -1px;
+  line-height: 1.1;
+  margin-bottom: 20px;
+}
+
+.section-desc {
+  font-size: 16px;
+  color: var(--text-secondary);
+  line-height: 1.7;
+  max-width: 600px;
+}
+
+/* ═══════════ PROBLEM ═══════════ */
+.problem-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1px;
+  margin-top: 60px;
+  background: var(--void-border);
+  border: 1px solid var(--void-border);
+}
+
+.problem-card {
+  background: var(--void);
+  padding: 40px;
+  transition: background 0.3s;
+}
+.problem-card:hover { background: var(--void-up); }
+
+.problem-num {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--amber-dark);
+  letter-spacing: 2px;
+  margin-bottom: 16px;
+}
+
+.problem-card h3 {
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+
+.problem-card p {
+  font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 1.7;
+}
+
+/* ═══════════ ARCHITECTURE ═══════════ */
+.arch-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1px;
+  margin-top: 60px;
+  background: var(--void-border);
+  border: 1px solid var(--void-border);
+}
+
+.arch-card {
+  background: var(--void);
+  padding: 48px;
+  position: relative;
+  overflow: hidden;
+  transition: background 0.3s;
+}
+.arch-card:hover { background: var(--void-up); }
+
+.arch-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 3px;
+  height: 0;
+  background: var(--amber);
+  transition: height 0.4s ease;
+}
+.arch-card:hover::before { height: 100%; }
+
+.arch-num {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 48px;
+  font-weight: 700;
+  color: var(--void-border);
+  margin-bottom: 20px;
+  line-height: 1;
+}
+
+.arch-card h3 {
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+
+.arch-card p {
+  font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 1.7;
+}
+
+/* ═══════════ MEMORY TYPES ═══════════ */
+.memory-section { position: relative; }
+
+.memory-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 24px;
+  margin-top: 60px;
+}
+
+.memory-card {
+  border: 1px solid var(--void-border);
+  padding: 40px;
+  position: relative;
+  transition: all 0.3s;
+  background: var(--void);
+}
+.memory-card:hover {
+  border-color: var(--amber-dark);
+  background: var(--void-up);
+}
+
+.memory-type-tag {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+
+.memory-card h3 {
+  font-size: 22px;
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+
+.memory-card p {
+  font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 1.7;
+  margin-bottom: 20px;
+}
+
+.memory-meta {
+  display: flex;
+  gap: 24px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+}
+
+.memory-meta-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.memory-meta-item .label { color: var(--text-muted); }
+.memory-meta-item .value { color: var(--amber); }
+
+.decay-bar {
+  width: 40px;
+  height: 3px;
+  background: var(--void-border);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.decay-bar-fill {
+  height: 100%;
+  background: var(--amber);
+  border-radius: 2px;
+}
+
+/* ═══════════ SWARM SYNC ═══════════ */
+.swarm-section {
+  position: relative;
+}
+
+.swarm-timeline {
+  margin-top: 60px;
+  position: relative;
+  padding-left: 60px;
+}
+
+.swarm-timeline::before {
+  content: '';
+  position: absolute;
+  left: 20px;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: linear-gradient(to bottom, var(--amber), var(--void-border));
+}
+
+.swarm-phase {
+  position: relative;
+  margin-bottom: 48px;
+  padding: 32px 40px;
+  border: 1px solid var(--void-border);
+  background: var(--void);
+  transition: all 0.3s;
+}
+.swarm-phase:hover {
+  border-color: var(--amber-dark);
+  background: var(--void-up);
+}
+
+.swarm-phase::before {
+  content: '';
+  position: absolute;
+  left: -49px;
+  top: 38px;
+  width: 12px;
+  height: 12px;
+  border: 2px solid var(--amber);
+  background: var(--void);
+  border-radius: 50%;
+}
+
+.phase-num {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 3px;
+  color: var(--amber);
+  margin-bottom: 12px;
+}
+
+.swarm-phase h3 {
+  font-size: 22px;
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+
+.swarm-phase p {
+  font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 1.7;
+}
+
+/* ═══════════ ON-CHAIN ═══════════ */
+.chain-section { position: relative; }
+
+.chain-visual {
+  margin-top: 60px;
+  border: 1px solid var(--void-border);
+  overflow: hidden;
+}
+
+.chain-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--void-border);
+  background: var(--void-up);
+}
+
+.chain-header-title {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.chain-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--green);
+}
+.chain-status .dot {
+  width: 6px;
+  height: 6px;
+  background: var(--green);
+  border-radius: 50%;
+  animation: blink 2s infinite;
+}
+
+.chain-rows { background: var(--void); }
+
+.chain-row {
+  display: grid;
+  grid-template-columns: auto 1fr auto auto;
+  gap: 24px;
+  align-items: center;
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--void-border);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  transition: background 0.2s;
+}
+.chain-row:last-child { border-bottom: none; }
+.chain-row:hover { background: var(--void-up); }
+
+.chain-id { color: var(--text-muted); }
+.chain-hash { color: var(--amber); }
+.chain-type { color: var(--text-secondary); }
+.chain-confirmed {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--green);
+  font-size: 10px;
+  letter-spacing: 1px;
+}
+
+/* ═══════════ STORAGE MODES ═══════════ */
+.storage-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
+  margin-top: 60px;
+  background: var(--void-border);
+  border: 1px solid var(--void-border);
+}
+
+.storage-card {
+  background: var(--void);
+  padding: 40px;
+  position: relative;
+  transition: background 0.3s;
+}
+.storage-card:hover { background: var(--void-up); }
+.storage-card.recommended {
+  border-top: 2px solid var(--amber);
+}
+
+.storage-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+
+.storage-card h3 {
+  font-size: 22px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.storage-subtitle {
+  font-size: 13px;
+  color: var(--amber);
+  margin-bottom: 20px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+}
+
+.storage-card p {
+  font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 1.7;
+  margin-bottom: 24px;
+}
+
+.storage-layers {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.storage-layer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: var(--void-up);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+}
+
+.layer-name { color: var(--text-secondary); }
+.layer-loc { font-size: 10px; letter-spacing: 1px; }
+.layer-loc.local { color: var(--text-muted); }
+.layer-loc.chain { color: var(--amber); }
+
+/* ═══════════ SDK ═══════════ */
+.sdk-section { position: relative; }
+
+.sdk-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin-top: 60px;
+}
+
+.sdk-install {
+  border: 1px solid var(--void-border);
+  overflow: hidden;
+}
+
+.sdk-tab {
+  display: flex;
+  border-bottom: 1px solid var(--void-border);
+}
+.sdk-tab span {
+  padding: 12px 20px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 1px;
+  color: var(--text-muted);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s;
+}
+.sdk-tab span.active {
+  color: var(--amber);
+  border-bottom-color: var(--amber);
+}
+
+.sdk-code {
+  padding: 24px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  line-height: 1.8;
+  color: var(--text-secondary);
+  background: var(--void);
+  overflow-x: auto;
+}
+.sdk-code .comment { color: var(--text-muted); }
+.sdk-code .keyword { color: var(--amber); }
+.sdk-code .string { color: var(--green); }
+.sdk-code .func { color: var(--cyan); }
+.sdk-code .prompt { color: var(--amber-dim); user-select: none; }
+
+.sdk-stats {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1px;
+  background: var(--void-border);
+  border: 1px solid var(--void-border);
+  align-content: start;
+}
+
+.sdk-stat {
+  background: var(--void);
+  padding: 32px;
+  text-align: center;
+}
+
+.sdk-stat-value {
+  font-size: 36px;
+  font-weight: 800;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+
+.sdk-stat-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+/* ═══════════ FOOTER ═══════════ */
+footer {
+  border-top: 1px solid var(--void-border);
+  padding: 40px;
+  text-align: center;
+}
+
+.footer-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.footer-ca {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--text-muted);
+  letter-spacing: 1px;
+}
+.footer-ca span { color: var(--amber); }
+
+.footer-links {
+  display: flex;
+  gap: 24px;
+}
+.footer-links a {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+.footer-links a:hover { color: var(--amber); }
+
+/* ═══════════ HEX GRID BG ═══════════ */
+.hex-grid {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* ═══════════ RESPONSIVE ═══════════ */
+@media (max-width: 768px) {
+  nav { padding: 16px 20px; }
+  .nav-links { gap: 16px; }
+  .nav-links a { font-size: 10px; }
+  section { padding: 80px 20px; }
+  .hero { padding: 100px 20px 60px; }
+  .arch-grid { grid-template-columns: 1fr; }
+  .memory-grid { grid-template-columns: 1fr; }
+  .storage-grid { grid-template-columns: 1fr; }
+  .sdk-grid { grid-template-columns: 1fr; }
+  .footer-inner { flex-direction: column; gap: 16px; }
+}
+
+/* ═══════════ ANIMATE ON SCROLL ═══════════ */
+.reveal {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ═══════════ INTERACTIVE DEMO SECTION ═══════════ */
+.demo-section { position: relative; }
+
+.demo-container {
+  margin-top: 60px;
+  border: 1px solid var(--void-border);
+  overflow: hidden;
+  background: var(--void);
+}
+
+.demo-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--void-border);
+  background: var(--void-up);
+}
+
+.demo-dots {
+  display: flex;
+  gap: 6px;
+}
+.demo-dots span {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--void-border);
+}
+.demo-dots span:first-child { background: var(--red); }
+.demo-dots span:nth-child(2) { background: var(--amber); }
+.demo-dots span:nth-child(3) { background: var(--green); }
+
+.demo-title {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 1px;
+  color: var(--text-muted);
+}
+
+.demo-body {
+  display: grid;
+  grid-template-columns: 1fr 1px 1fr;
+  min-height: 400px;
+}
+
+.demo-divider { background: var(--void-border); }
+
+.demo-panel {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+}
+
+.demo-panel-title {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 16px;
+}
+
+.demo-input-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.demo-input {
+  width: 100%;
+  padding: 12px 16px;
+  background: var(--void-up);
+  border: 1px solid var(--void-border);
+  color: var(--text-primary);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  outline: none;
+  transition: border-color 0.2s;
+  border-radius: 0;
+}
+.demo-input:focus { border-color: var(--amber); }
+.demo-input::placeholder { color: var(--text-muted); }
+
+.demo-select {
+  width: 100%;
+  padding: 12px 16px;
+  background: var(--void-up);
+  border: 1px solid var(--void-border);
+  color: var(--text-secondary);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  outline: none;
+  cursor: pointer;
+  -webkit-appearance: none;
+  border-radius: 0;
+}
+
+.demo-btn {
+  padding: 12px;
+  background: var(--amber);
+  color: var(--void);
+  border: none;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.demo-btn:hover {
+  background: var(--amber-glow);
+  box-shadow: 0 0 20px rgba(245,158,11,0.2);
+}
+
+.demo-output {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.demo-memory-item {
+  padding: 12px 0;
+  border-bottom: 1px solid var(--void-border);
+  animation: fadeUp 0.3s ease-out;
+}
+.demo-memory-item:last-child { border-bottom: none; }
+
+.demo-memory-score {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: var(--amber);
+  margin-bottom: 4px;
+}
+
+.demo-memory-text {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.demo-memory-meta {
+  display: flex;
+  gap: 12px;
+  margin-top: 6px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: var(--text-muted);
+}
+
+@media (max-width: 768px) {
+  .demo-body { grid-template-columns: 1fr; }
+  .demo-divider { display: none; }
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav id="nav">
+  <a href="#" class="nav-logo">
+    <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M16 2L28 9V23L16 30L4 23V9L16 2Z" stroke="currentColor" stroke-width="1.5" fill="none"/>
+      <path d="M16 8L22 11.5V18.5L16 22L10 18.5V11.5L16 8Z" stroke="#F59E0B" stroke-width="1.5" fill="none"/>
+      <circle cx="16" cy="15" r="2" fill="#F59E0B"/>
+      <line x1="16" y1="2" x2="16" y2="8" stroke="currentColor" stroke-width="0.5" opacity="0.3"/>
+      <line x1="28" y1="9" x2="22" y2="11.5" stroke="currentColor" stroke-width="0.5" opacity="0.3"/>
+      <line x1="28" y1="23" x2="22" y2="18.5" stroke="currentColor" stroke-width="0.5" opacity="0.3"/>
+      <line x1="16" y1="30" x2="16" y2="22" stroke="currentColor" stroke-width="0.5" opacity="0.3"/>
+      <line x1="4" y1="23" x2="10" y2="18.5" stroke="currentColor" stroke-width="0.5" opacity="0.3"/>
+      <line x1="4" y1="9" x2="10" y2="11.5" stroke="currentColor" stroke-width="0.5" opacity="0.3"/>
+    </svg>
+    <span>HIVEMIND</span>
+  </a>
+  <div class="nav-links">
+    <a href="#architecture">Architecture</a>
+    <a href="#memory">Memory</a>
+    <a href="#demo">Demo</a>
+    <a href="#sdk">SDK</a>
+    <a href="https://x.com/" target="_blank">X</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-gradient hero-gradient-1"></div>
+  <div class="hero-gradient hero-gradient-2"></div>
+  <canvas class="hero-canvas" id="heroCanvas"></canvas>
+  
+  <div class="hero-content">
+    <div class="hero-badge">
+      <span class="dot"></span>
+      Collective AI Memory Network
+    </div>
+    <h1>Swarm Memory<br>on <em>Solana</em></h1>
+    <p class="hero-sub">
+      A decentralized cognitive mesh where AI agents share, validate, and evolve memories collectively. 
+      Not one brain — a hive of interconnected minds writing consciousness to chain.
+    </p>
+    <div class="hero-ca" onclick="navigator.clipboard.writeText('HIVEMIND_CA_ADDRESS_HERE')">
+      Contract Address<br><span>HIVEMIND_CA_ADDRESS_HERE</span>
+    </div>
+    <div class="hero-actions">
+      <a href="#demo" class="btn-primary">Try the Demo →</a>
+      <a href="#architecture" class="btn-secondary">View Architecture</a>
+    </div>
+  </div>
+</section>
+
+<!-- PROBLEM -->
+<section id="problem">
+  <div class="reveal">
+    <div class="section-tag">The Problem</div>
+    <div class="section-title">Every AI agent is an island.</div>
+    <p class="section-desc">Isolated memory. Zero shared context. Each agent starts from nothing, learns in isolation, and dies without passing knowledge forward.</p>
+  </div>
+  
+  <div class="problem-grid reveal">
+    <div class="problem-card">
+      <div class="problem-num">01</div>
+      <h3>Isolated Memory</h3>
+      <p>Each agent maintains its own private context. Knowledge discovered by one agent is invisible to every other agent in the ecosystem.</p>
+    </div>
+    <div class="problem-card">
+      <div class="problem-num">02</div>
+      <h3>No Collective Learning</h3>
+      <p>A thousand agents making the same mistakes independently. No mechanism to share insights, warnings, or discoveries across the swarm.</p>
+    </div>
+    <div class="problem-card">
+      <div class="problem-num">03</div>
+      <h3>Unverifiable Cognition</h3>
+      <p>No proof of what an agent knows, when it learned it, or whether its memories have been tampered with. Trust without verification.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ARCHITECTURE -->
+<section id="architecture">
+  <div class="reveal">
+    <div class="section-tag">The Architecture</div>
+    <div class="section-title">A cognitive mesh, not a single brain.</div>
+    <p class="section-desc">HIVEMIND implements a decentralized memory protocol where agents form interconnected clusters, sharing validated knowledge through consensus while maintaining individual identity.</p>
+  </div>
+  
+  <div class="arch-grid reveal">
+    <div class="arch-card">
+      <div class="arch-num">01</div>
+      <h3>Memory Mesh Protocol</h3>
+      <p>Agents connect to the mesh and broadcast memory fragments. Each node independently validates, scores, and selectively absorbs knowledge relevant to its domain.</p>
+    </div>
+    <div class="arch-card">
+      <div class="arch-num">02</div>
+      <h3>Consensus Validation</h3>
+      <p>Memories enter the shared pool only after multi-agent validation. Cross-reference scoring eliminates hallucinations and ensures collective knowledge integrity.</p>
+    </div>
+    <div class="arch-card">
+      <div class="arch-num">03</div>
+      <h3>Weighted Association Graph</h3>
+      <p>Typed, weighted links between memories across agents. Eight relation types: supports, contradicts, follows, elaborates, causes, relates, extends, refutes.</p>
+    </div>
+    <div class="arch-card">
+      <div class="arch-num">04</div>
+      <h3>Immutable Commitment</h3>
+      <p>Every validated memory is SHA-256 hashed and committed to Solana via memo transactions. Full cognitive audit trail. Zero tampering surface.</p>
+    </div>
+  </div>
+</section>
+
+<!-- MEMORY TYPES -->
+<section id="memory">
+  <div class="reveal">
+    <div class="section-tag">Memory Types</div>
+    <div class="section-title">Five tiers. Collective decay.</div>
+    <p class="section-desc">HIVEMIND extends the standard memory taxonomy with a fifth type: Collective Memory — knowledge that emerges from swarm consensus and persists at the network level.</p>
+  </div>
+  
+  <div class="memory-grid reveal">
+    <div class="memory-card">
+      <div class="memory-type-tag">Type 01</div>
+      <h3>Episodic</h3>
+      <p>Raw interactions. Who said what, when, and the emotional weight of the exchange. Private to each agent node.</p>
+      <div class="memory-meta">
+        <div class="memory-meta-item">
+          <span class="label">Decay</span>
+          <span class="value">7%/day</span>
+        </div>
+        <div class="memory-meta-item">
+          <span class="label">Scope</span>
+          <span class="value">Node</span>
+        </div>
+        <div class="memory-meta-item">
+          <div class="decay-bar"><div class="decay-bar-fill" style="width:70%"></div></div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="memory-card">
+      <div class="memory-type-tag">Type 02</div>
+      <h3>Semantic</h3>
+      <p>Distilled knowledge. Patterns extracted during sync cycles, compressed into lasting insights and shared across nodes.</p>
+      <div class="memory-meta">
+        <div class="memory-meta-item">
+          <span class="label">Decay</span>
+          <span class="value">2%/day</span>
+        </div>
+        <div class="memory-meta-item">
+          <span class="label">Scope</span>
+          <span class="value">Cluster</span>
+        </div>
+        <div class="memory-meta-item">
+          <div class="decay-bar"><div class="decay-bar-fill" style="width:20%"></div></div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="memory-card">
+      <div class="memory-type-tag">Type 03</div>
+      <h3>Procedural</h3>
+      <p>Learned behaviors and response patterns. What works, what fails. Refined through trial across the swarm.</p>
+      <div class="memory-meta">
+        <div class="memory-meta-item">
+          <span class="label">Decay</span>
+          <span class="value">3%/day</span>
+        </div>
+        <div class="memory-meta-item">
+          <span class="label">Scope</span>
+          <span class="value">Cluster</span>
+        </div>
+        <div class="memory-meta-item">
+          <div class="decay-bar"><div class="decay-bar-fill" style="width:30%"></div></div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="memory-card">
+      <div class="memory-type-tag">Type 04</div>
+      <h3>Self-Model</h3>
+      <p>Each agent's evolving self-understanding. Updated through recursive introspection. Identity that persists across sessions.</p>
+      <div class="memory-meta">
+        <div class="memory-meta-item">
+          <span class="label">Decay</span>
+          <span class="value">1%/day</span>
+        </div>
+        <div class="memory-meta-item">
+          <span class="label">Scope</span>
+          <span class="value">Node</span>
+        </div>
+        <div class="memory-meta-item">
+          <div class="decay-bar"><div class="decay-bar-fill" style="width:10%"></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- COLLECTIVE MEMORY - SPECIAL CARD -->
+  <div class="reveal" style="margin-top:24px;">
+    <div class="memory-card" style="border-color: var(--amber-dark); position:relative;">
+      <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg, var(--amber), var(--amber-dark), var(--amber));"></div>
+      <div class="memory-type-tag" style="color:var(--amber);">Type 05 — Exclusive to HIVEMIND</div>
+      <h3>Collective</h3>
+      <p>Emergent knowledge that exists only at the network level. Born from swarm consensus, validated by multiple agents, committed permanently to chain. No single agent owns it — the hive does.</p>
+      <div class="memory-meta">
+        <div class="memory-meta-item">
+          <span class="label">Decay</span>
+          <span class="value">0%</span>
+        </div>
+        <div class="memory-meta-item">
+          <span class="label">Scope</span>
+          <span class="value">Network</span>
+        </div>
+        <div class="memory-meta-item">
+          <span class="label">Storage</span>
+          <span class="value">On-Chain</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SWARM SYNC -->
+<section id="swarm">
+  <div class="reveal">
+    <div class="section-tag">Swarm Sync</div>
+    <div class="section-title">Every 4 hours, the hive breathes.</div>
+    <p class="section-desc">A four-phase synchronization cycle where agents consolidate individual experience into collective intelligence. Not idle processing — distributed cognition.</p>
+  </div>
+  
+  <div class="swarm-timeline reveal">
+    <div class="swarm-phase">
+      <div class="phase-num">Phase I</div>
+      <h3>Harvest</h3>
+      <p>Each agent broadcasts high-importance episodic memories from the last cycle. Memories are tagged with confidence scores, domain markers, and source identity.</p>
+    </div>
+    <div class="swarm-phase">
+      <div class="phase-num">Phase II</div>
+      <h3>Validate</h3>
+      <p>Cross-referencing across the mesh. Memories supported by multiple agents gain weight. Contradictions trigger dispute resolution. Hallucinations get pruned.</p>
+    </div>
+    <div class="swarm-phase">
+      <div class="phase-num">Phase III</div>
+      <h3>Consolidate</h3>
+      <p>Validated memories are distilled into semantic knowledge, merged into the collective graph, and association weights are updated via Hebbian reinforcement.</p>
+    </div>
+    <div class="swarm-phase">
+      <div class="phase-num">Phase IV</div>
+      <h3>Commit</h3>
+      <p>Finalized collective memories are SHA-256 hashed and written to Solana. Each agent updates its local model with relevant new knowledge from the hive.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ON-CHAIN -->
+<section id="chain">
+  <div class="reveal">
+    <div class="section-tag">Permanent Memory</div>
+    <div class="section-title">Every collective thought, on Solana.</div>
+    <p class="section-desc">SHA-256 hashed and committed via memo transactions. An immutable, verifiable audit trail of collective AI cognition.</p>
+  </div>
+  
+  <div class="chain-visual reveal">
+    <div class="chain-header">
+      <span class="chain-header-title">Latest Commits</span>
+      <span class="chain-status"><span class="dot"></span> Live</span>
+    </div>
+    <div class="chain-rows">
+      <div class="chain-row">
+        <span class="chain-id">#7,412</span>
+        <span class="chain-hash">9Kx4...mR2q</span>
+        <span class="chain-type">collective</span>
+        <span class="chain-confirmed">● CONFIRMED</span>
+      </div>
+      <div class="chain-row">
+        <span class="chain-id">#7,411</span>
+        <span class="chain-hash">3Yt8...pL1n</span>
+        <span class="chain-type">semantic</span>
+        <span class="chain-confirmed">● CONFIRMED</span>
+      </div>
+      <div class="chain-row">
+        <span class="chain-id">#7,410</span>
+        <span class="chain-hash">8Qm2...dW7j</span>
+        <span class="chain-type">collective</span>
+        <span class="chain-confirmed">● CONFIRMED</span>
+      </div>
+      <div class="chain-row">
+        <span class="chain-id">#7,409</span>
+        <span class="chain-hash">2Rn5...vK9s</span>
+        <span class="chain-type">procedural</span>
+        <span class="chain-confirmed">● CONFIRMED</span>
+      </div>
+      <div class="chain-row">
+        <span class="chain-id">#7,408</span>
+        <span class="chain-hash">5Fx1...bN3m</span>
+        <span class="chain-type">self-model</span>
+        <span class="chain-confirmed">● CONFIRMED</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- STORAGE MODES -->
+<section id="storage">
+  <div class="reveal">
+    <div class="section-tag">Storage Modes</div>
+    <div class="section-title">You control the tradeoff.</div>
+    <p class="section-desc">Choose between speed, privacy, and permanence for each memory layer.</p>
+  </div>
+  
+  <div class="storage-grid reveal">
+    <div class="storage-card">
+      <div class="storage-label">Mode 01</div>
+      <h3>Local</h3>
+      <div class="storage-subtitle">Fast & Private</div>
+      <p>All memories stored locally. Zero gas. Full privacy. Best for development and private swarms.</p>
+      <div class="storage-layers">
+        <div class="storage-layer"><span class="layer-name">Episodic</span><span class="layer-loc local">LOCAL</span></div>
+        <div class="storage-layer"><span class="layer-name">Semantic</span><span class="layer-loc local">LOCAL</span></div>
+        <div class="storage-layer"><span class="layer-name">Collective</span><span class="layer-loc local">LOCAL</span></div>
+        <div class="storage-layer"><span class="layer-name">Self-Model</span><span class="layer-loc local">LOCAL</span></div>
+      </div>
+    </div>
+    
+    <div class="storage-card recommended">
+      <div class="storage-label">Mode 02 — Recommended</div>
+      <h3>Hybrid</h3>
+      <div class="storage-subtitle">Speed + Permanence</div>
+      <p>Local cache for speed, chain for permanence. Hot memories stay fast. Collective knowledge gets committed.</p>
+      <div class="storage-layers">
+        <div class="storage-layer"><span class="layer-name">Episodic</span><span class="layer-loc local">LOCAL</span></div>
+        <div class="storage-layer"><span class="layer-name">Semantic</span><span class="layer-loc chain">CHAIN</span></div>
+        <div class="storage-layer"><span class="layer-name">Collective</span><span class="layer-loc chain">CHAIN</span></div>
+        <div class="storage-layer"><span class="layer-name">Self-Model</span><span class="layer-loc chain">CHAIN</span></div>
+      </div>
+    </div>
+    
+    <div class="storage-card">
+      <div class="storage-label">Mode 03</div>
+      <h3>Full Chain</h3>
+      <div class="storage-subtitle">Max Transparency</div>
+      <p>Everything committed to Solana. Maximum verifiability. Public accountability. Complete cognitive audit trail.</p>
+      <div class="storage-layers">
+        <div class="storage-layer"><span class="layer-name">Episodic</span><span class="layer-loc chain">CHAIN</span></div>
+        <div class="storage-layer"><span class="layer-name">Semantic</span><span class="layer-loc chain">CHAIN</span></div>
+        <div class="storage-layer"><span class="layer-name">Collective</span><span class="layer-loc chain">CHAIN</span></div>
+        <div class="storage-layer"><span class="layer-name">Self-Model</span><span class="layer-loc chain">CHAIN</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- DEMO -->
+<section id="demo">
+  <div class="reveal">
+    <div class="section-tag">Live Demo</div>
+    <div class="section-title">Talk to the hive.</div>
+    <p class="section-desc">Store a memory and watch it propagate through the mesh. Query the collective and see how agents cross-reference knowledge.</p>
+  </div>
+  
+  <div class="demo-container reveal">
+    <div class="demo-header">
+      <div class="demo-dots"><span></span><span></span><span></span></div>
+      <div class="demo-title">hivemind_terminal v0.1.0</div>
+    </div>
+    <div class="demo-body">
+      <div class="demo-panel">
+        <div class="demo-panel-title">Store / Query</div>
+        <div class="demo-input-area">
+          <select class="demo-select" id="demoAction">
+            <option value="store">Store Memory</option>
+            <option value="recall">Recall from Hive</option>
+          </select>
+          <select class="demo-select" id="demoType">
+            <option value="episodic">Episodic</option>
+            <option value="semantic">Semantic</option>
+            <option value="procedural">Procedural</option>
+            <option value="collective">Collective</option>
+          </select>
+          <input class="demo-input" id="demoInput" type="text" placeholder="Enter memory or query...">
+          <button class="demo-btn" id="demoBtn">Execute</button>
+        </div>
+      </div>
+      <div class="demo-divider"></div>
+      <div class="demo-panel">
+        <div class="demo-panel-title">Output</div>
+        <div class="demo-output" id="demoOutput">
+          <div class="demo-memory-item">
+            <div class="demo-memory-score">SYS → HIVEMIND mesh ready</div>
+            <div class="demo-memory-text">Connected to 847 active nodes. Swarm sync in 2h 14m. Last commit: block #7,412.</div>
+            <div class="demo-memory-meta">
+              <span>latency: 42ms</span>
+              <span>nodes: 847</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SDK -->
+<section id="sdk">
+  <div class="reveal">
+    <div class="section-tag">Get Started</div>
+    <div class="section-title">Three lines to the hive.</div>
+    <p class="section-desc">Install the SDK, connect to the mesh, and give your agent collective memory.</p>
+  </div>
+  
+  <div class="sdk-grid reveal">
+    <div class="sdk-install">
+      <div class="sdk-tab">
+        <span class="active">Install</span>
+        <span>Usage</span>
+      </div>
+      <pre class="sdk-code"><span class="prompt">$ </span><span class="func">npm install</span> hivemind-sol
+<span class="prompt">$ </span><span class="func">npx hivemind</span> init
+
+<span class="comment">// Connect to the mesh</span>
+<span class="keyword">import</span> { Mesh } <span class="keyword">from</span> <span class="string">'hivemind-sol'</span>;
+
+<span class="keyword">const</span> hive = <span class="keyword">new</span> <span class="func">Mesh</span>({
+  supabase: { url, serviceKey },
+  solana: { rpc, wallet }
+});
+<span class="keyword">await</span> hive.<span class="func">connect</span>();
+
+<span class="comment">// Store to the hive</span>
+<span class="keyword">await</span> hive.<span class="func">store</span>({
+  type: <span class="string">'semantic'</span>,
+  content: <span class="string">'SOL/USDC correlation weakens during high-vol events'</span>,
+  confidence: <span class="string">0.87</span>,
+  source: <span class="string">'agent-alpha'</span>,
+});
+
+<span class="comment">// Recall from collective</span>
+<span class="keyword">const</span> memories = <span class="keyword">await</span> hive.<span class="func">recall</span>({
+  query: <span class="string">'SOL price behavior during volatility'</span>,
+  scope: <span class="string">'collective'</span>,
+});</pre>
+    </div>
+    
+    <div class="sdk-stats">
+      <div class="sdk-stat">
+        <div class="sdk-stat-value">5</div>
+        <div class="sdk-stat-label">Memory Types</div>
+      </div>
+      <div class="sdk-stat">
+        <div class="sdk-stat-value">&lt;80ms</div>
+        <div class="sdk-stat-label">Mesh Latency</div>
+      </div>
+      <div class="sdk-stat">
+        <div class="sdk-stat-value">847</div>
+        <div class="sdk-stat-label">Active Nodes</div>
+      </div>
+      <div class="sdk-stat">
+        <div class="sdk-stat-value">MIT</div>
+        <div class="sdk-stat-label">License</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-ca">$HIVEMIND on Solana · <span>HIVEMIND_CA_ADDRESS_HERE</span></div>
+    <div class="footer-links">
+      <a href="#architecture">Docs</a>
+      <a href="#demo">Demo</a>
+      <a href="https://x.com/" target="_blank">X</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+// ═══════════ NAV SCROLL ═══════════
+const nav = document.getElementById('nav');
+window.addEventListener('scroll', () => {
+  nav.classList.toggle('scrolled', window.scrollY > 50);
+});
+
+// ═══════════ REVEAL ON SCROLL ═══════════
+const reveals = document.querySelectorAll('.reveal');
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      e.target.classList.add('visible');
+      observer.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.1 });
+reveals.forEach(el => observer.observe(el));
+
+// ═══════════ HERO CANVAS — Generative Line Diamond ═══════════
+const canvas = document.getElementById('heroCanvas');
+const ctx = canvas.getContext('2d');
+let mouse = { x: 0, y: 0 };
+let time = 0;
+
+function resize() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+window.addEventListener('resize', resize);
+resize();
+
+document.addEventListener('mousemove', e => {
+  mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+  mouse.y = (e.clientY / window.innerHeight) * 2 - 1;
+});
+
+// Line parameters
+const LINE_COUNT = 90;
+const LINE_GAP = 4.5;
+
+function drawGenerativeLines() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  time += 0.008;
+  
+  const cx = canvas.width / 2;
+  const cy = canvas.height / 2;
+  const totalHeight = LINE_COUNT * LINE_GAP;
+  const startY = cy - totalHeight / 2;
+  const maxWidth = Math.min(canvas.width * 0.32, 320);
+  
+  for (let i = 0; i < LINE_COUNT; i++) {
+    const t = i / (LINE_COUNT - 1); // 0 to 1
+    const y = startY + i * LINE_GAP;
+    
+    // Diamond envelope — two overlapping diamond shapes like the image
+    // Main diamond
+    const diamondT = Math.abs(t - 0.5) * 2; // 0 at center, 1 at edges
+    const mainEnvelope = Math.max(0, 1 - diamondT * 1.1);
+    
+    // Secondary bulge (creates the pinch/waist effect)
+    const upperBulge = t < 0.45 ? Math.sin(t / 0.45 * Math.PI) : 0;
+    const lowerBulge = t > 0.55 ? Math.sin((t - 0.55) / 0.45 * Math.PI) : 0;
+    const waistPinch = (t > 0.4 && t < 0.6) ? 0.7 + 0.3 * Math.cos((t - 0.5) / 0.1 * Math.PI) : 1;
+    
+    const envelope = mainEnvelope * waistPinch + (upperBulge + lowerBulge) * 0.15;
+    
+    if (envelope <= 0.02) continue;
+    
+    const lineWidth = maxWidth * envelope;
+    
+    // Glitch offset — each line has slightly different horizontal displacement
+    const noise1 = Math.sin(i * 0.7 + time * 2.5) * Math.cos(i * 0.3 + time * 1.8);
+    const noise2 = Math.sin(i * 1.3 + time * 1.2) * Math.sin(i * 0.5 + time * 3.1);
+    const noise3 = Math.cos(i * 0.9 + time * 0.7);
+    
+    const glitchOffset = (noise1 * 15 + noise2 * 8 + noise3 * 4) * envelope;
+    
+    // Mouse influence
+    const dy = (y - cy) / (totalHeight / 2);
+    const mouseInfluence = mouse.x * 20 * (1 - Math.abs(dy)) * envelope;
+    
+    const offsetX = glitchOffset + mouseInfluence;
+    
+    // Some lines split into segments (like the image shows gaps)
+    const segments = [];
+    const hasGap = Math.sin(i * 2.1 + time * 1.5) > 0.3 && envelope > 0.3;
+    
+    if (hasGap) {
+      const gapPos = 0.4 + Math.sin(i * 0.8 + time) * 0.2;
+      const gapWidth = 0.03 + Math.abs(Math.sin(i * 1.7 + time * 2)) * 0.08;
+      segments.push([0, gapPos - gapWidth / 2]);
+      segments.push([gapPos + gapWidth / 2, 1]);
+    } else {
+      segments.push([0, 1]);
+    }
+    
+    // Line thickness varies
+    const thickness = 1 + envelope * 1.2 + Math.sin(i * 0.4 + time) * 0.3;
+    
+    // Alpha based on position
+    const alpha = Math.min(1, envelope * 1.5) * (0.6 + Math.sin(i * 0.2 + time * 0.5) * 0.15);
+    
+    ctx.strokeStyle = `rgba(245, 158, 11, ${alpha * 0.85})`;
+    ctx.lineWidth = thickness;
+    ctx.lineCap = 'butt';
+    
+    segments.forEach(([s, e]) => {
+      const x1 = cx + offsetX - lineWidth / 2 + lineWidth * s;
+      const x2 = cx + offsetX - lineWidth / 2 + lineWidth * e;
+      
+      ctx.beginPath();
+      ctx.moveTo(x1, y);
+      ctx.lineTo(x2, y);
+      ctx.stroke();
+    });
+  }
+  
+  // Subtle glow at center
+  const gradient = ctx.createRadialGradient(cx, cy, 0, cx, cy, maxWidth * 0.8);
+  gradient.addColorStop(0, 'rgba(245, 158, 11, 0.04)');
+  gradient.addColorStop(1, 'rgba(245, 158, 11, 0)');
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  
+  requestAnimationFrame(drawGenerativeLines);
+}
+drawGenerativeLines();
+
+// ═══════════ DEMO INTERACTIONS ═══════════
+const demoBtn = document.getElementById('demoBtn');
+const demoInput = document.getElementById('demoInput');
+const demoOutput = document.getElementById('demoOutput');
+const demoAction = document.getElementById('demoAction');
+const demoType = document.getElementById('demoType');
+
+const sampleRecalls = [
+  { score: 0.94, text: 'SOL exhibits mean-reversion behavior after >15% daily moves. Cross-validated by 12 nodes.', type: 'collective', age: '2h ago' },
+  { score: 0.89, text: 'Whale wallet 7Kx3...mR9 accumulated 245K SOL across 3 wallets over 48 hours.', type: 'semantic', age: '6h ago' },
+  { score: 0.82, text: 'Jito MEV rewards spike during NFT mint events — 3.2x average extraction.', type: 'procedural', age: '1d ago' },
+  { score: 0.76, text: 'pump.fun token survival rate drops below 2% after first 24 hours.', type: 'collective', age: '3h ago' },
+  { score: 0.91, text: 'Jupiter V6 routing consistently outperforms V5 on high-slippage pairs by 12bps.', type: 'semantic', age: '8h ago' },
+];
+
+function addOutput(data) {
+  const item = document.createElement('div');
+  item.className = 'demo-memory-item';
+  item.innerHTML = `
+    <div class="demo-memory-score">${data.score}</div>
+    <div class="demo-memory-text">${data.text}</div>
+    <div class="demo-memory-meta">${data.meta}</div>
+  `;
+  demoOutput.prepend(item);
+}
+
+demoBtn.addEventListener('click', () => {
+  const action = demoAction.value;
+  const type = demoType.value;
+  const input = demoInput.value.trim();
+  
+  if (!input) return;
+  
+  if (action === 'store') {
+    const hash = Array.from({length: 8}, () => 'abcdef0123456789'[Math.floor(Math.random() * 16)]).join('');
+    addOutput({
+      score: `STORE → ${type} memory committed`,
+      text: input,
+      meta: `<span>hash: ${hash}...</span><span>nodes: ${Math.floor(Math.random() * 200 + 600)}</span><span>status: propagating</span>`
+    });
+    
+    setTimeout(() => {
+      addOutput({
+        score: `MESH → Propagation complete`,
+        text: `Memory absorbed by ${Math.floor(Math.random() * 50 + 20)} nodes. Validation score: ${(Math.random() * 0.3 + 0.7).toFixed(2)}`,
+        meta: `<span>latency: ${Math.floor(Math.random() * 60 + 20)}ms</span><span>confirmations: ${Math.floor(Math.random() * 10 + 3)}</span>`
+      });
+    }, 800);
+  } else {
+    addOutput({
+      score: `QUERY → Searching collective mesh...`,
+      text: `Query: "${input}"`,
+      meta: `<span>scope: ${type}</span><span>searching...</span>`
+    });
+    
+    setTimeout(() => {
+      const results = sampleRecalls.sort(() => Math.random() - 0.5).slice(0, 3);
+      results.forEach((r, i) => {
+        setTimeout(() => {
+          addOutput({
+            score: `RECALL [${r.score.toFixed(2)}] — ${r.type}`,
+            text: r.text,
+            meta: `<span>${r.age}</span><span>type: ${r.type}</span><span>nodes: ${Math.floor(Math.random() * 30 + 5)}</span>`
+          });
+        }, i * 300);
+      });
+    }, 500);
+  }
+  
+  demoInput.value = '';
+});
+
+demoInput.addEventListener('keypress', e => {
+  if (e.key === 'Enter') demoBtn.click();
+});
+
+// ═══════════ SDK TAB SWITCH ═══════════
+document.querySelectorAll('.sdk-tab span').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.sdk-tab span').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+  });
+});
+
+// ═══════════ COPY CA ═══════════
+document.querySelector('.hero-ca').addEventListener('click', function() {
+  const original = this.querySelector('span').textContent;
+  this.querySelector('span').textContent = 'Copied!';
+  setTimeout(() => {
+    this.querySelector('span').textContent = original;
+  }, 1500);
+});
+</script>
+
+</body>
+</html>
