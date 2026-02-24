@@ -1,0 +1,71 @@
+{
+  "name": "hivemind-sol",
+  "version": "0.1.0",
+  "description": "Collective AI Memory Network on Solana — decentralized cognitive mesh for AI agents",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "bin": {
+    "hivemind": "./bin/cli.js"
+  },
+  "scripts": {
+    "build": "tsup src/index.ts --format cjs,esm --dts",
+    "dev": "tsup src/index.ts --format cjs,esm --dts --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "eslint src/",
+    "db:setup": "ts-node scripts/setup-db.ts",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "ai",
+    "agent",
+    "memory",
+    "solana",
+    "blockchain",
+    "collective-intelligence",
+    "swarm",
+    "hivemind",
+    "vector-search",
+    "cognitive-architecture"
+  ],
+  "author": "HIVEMIND",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/hivemind-sol/hivemind"
+  },
+  "homepage": "https://hivemind.sol",
+  "bugs": {
+    "url": "https://github.com/hivemind-sol/hivemind/issues"
+  },
+  "dependencies": {
+    "@solana/web3.js": "^1.95.0",
+    "@supabase/supabase-js": "^2.45.0",
+    "openai": "^4.58.0",
+    "bs58": "^6.0.0",
+    "commander": "^12.1.0",
+    "chalk": "^5.3.0",
+    "ora": "^8.0.0",
+    "nanoid": "^5.0.7",
+    "eventemitter3": "^5.0.1",
+    "lru-cache": "^11.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "tsup": "^8.2.0",
+    "typescript": "^5.5.0",
+    "vitest": "^2.0.0",
+    "eslint": "^9.8.0",
+    "@typescript-eslint/eslint-plugin": "^8.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "files": [
+    "dist",
+    "bin",
+    "README.md",
+    "LICENSE"
+  ]
+}
